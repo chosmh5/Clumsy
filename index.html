@@ -63,13 +63,12 @@
       .then(t=>{
         const json = parseGviz(t);
         if (json.status !== "ok") throw new Error("status not ok");
-        renderTable(json.table.cols, json.table.rows);
+        renderTable(json.table.cols, json.table.rows.slice(1));
       })
       .catch(e=>{
         document.getElementById("table").textContent = "불러오기 실패";
         const hint = document.getElementById("hint");
         hint.style.display = "block";
-        hint.textContent = "권한/웹에 게시 설정 또는 임베드 차단(CORS) 가능성을 확인하세요.";
         console.error(e);
       });
   </script>
