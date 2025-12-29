@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Character Stats</title>
+  <style>
+    body { margin:0; background:#0e0e0e; color:#eee; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+    .wrap { padding:12px; }
+    table { border-collapse:collapse; width:100%; }
+    th, td { border:1px solid #444; padding:6px 10px; text-align:center; }
+    th { background:#222; }
+    .hint { opacity:.75; font-size:12px; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="table">불러오는 중...</div>
+    <div class="hint" id="hint" style="display:none;"></div>
+  </div>
+
+  <script>
+    const SHEET_ID = "1pcm0KdUXGLKl6YWVzmjtw4qwUqR4cJ9tfGM0khMuATA";
+    const GID = "1229865200";
+    const QUERY = "select A,B,C,D,E,F,G,H limit 1 offset 11"; // 필요 시 offset만 변경
+
+    function gvizUrl(tq){
+      return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID}&tq=${encodeURIComponent(tq)}`;
+    }
+    function parseGviz(text){
+      const m = text.match(/setResponse\(([\s\S]*?)\);\s*$/);
+      if (!m) throw new Error("GViz 응답 형식이 아님");
+      return JSON.parse(m[1]);
+    }
+    function renderTable(cols, rows){
+      const table = document.createElement("table");
+
+      const header = document.createElement("tr");
+      cols.forEach(c=>{
+        const th = document.createElement("th");
+        th.textContent = c.label || "";
+        header.appendChild(th);
+      });
+      table.appendChild(header);
+
+      rows.forEach(r=>{
+        const tr = document.createElement("tr");
+        r.c.forEach(cell=>{
+          const td = document.createElement("td");
+          td.textContent = (cell && cell.v != null) ? cell.v : "";
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
+
+      const host = document.getElementById("table");
+      host.innerHTML = "";
+      host.appendChild(table);
+    }
+
+    fetch(gvizUrl(QUERY))
+      .then(r=>r.text())
+      .then(t=>{
+        const json = parseGviz(t);
+        if (json.status !== "ok") throw new Error("status not ok");
+        renderTable(json.table.cols, json.table.rows);
+      })
+      .catch(e=>{
+        document.getElementById("table").textContent = "불러오기 실패";
+        const hint = document.getElementById("hint");
+        hint.style.display = "block";
+        hint.textContent = "권한/웹에 게시 설정 또는 임베드 차단(CORS) 가능성을 확인하세요.";
+        console.error(e);
+      });
+  </script>
+</body>
+</html>
