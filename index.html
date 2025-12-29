@@ -29,8 +29,6 @@
     }
     function parseGviz(text){
       const m = text.match(/setResponse\(([\s\S]*?)\);\s*$/);
-      if (!m) throw new Error("GViz 응답 형식이 아님");
-      return JSON.parse(m[1]);
     }
     function renderTable(cols, rows){
       const table = document.createElement("table");
@@ -63,7 +61,7 @@
       .then(t=>{
         const json = parseGviz(t);
         if (json.status !== "ok") throw new Error("status not ok");
-        renderTable(json.table.cols, json.table.rows.slice(1));
+        renderTable(json.table.cols, json.table.rows);
       })
       .catch(e=>{
         document.getElementById("table").textContent = "불러오기 실패";
